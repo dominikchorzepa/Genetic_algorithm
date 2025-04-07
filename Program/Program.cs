@@ -1,117 +1,129 @@
 ﻿namespace Program;
 
-class Parametr
-{
-    public int Wartosc {get; set;}
-    public double Funkcja {get; set;}
-
-    public Parametr(int wartosc, double funkcja){
-        Wartosc = wartosc;
-        Funkcja = funkcja;
-    }
-
-    public void Wyswietl(){
-        Console.WriteLine("Parametr: " + Wartosc + " " + "Funkcja: " + Funkcja);
-    }
-}
-
 class Program
 {
     static void Main(string[] args)
     {
-        int ZDMin = -1;
-        int ZDMax = 2;
-        int LBnP = 2;
+        int ZDMin = -5;
+        int ZDMax = 5;
+        int LBnP = 3;
+        int TurRozm = 3;
+        int liczbaParametrow = 2;
+        int liczbaOsobnikow = 6;
+        int LBnOs = LBnP * liczbaParametrow;
+
+        List<(string chromosom, double przystosowanie)> populacja = new List<(string, double)>();
+
+        Random rnd = new Random();
+
+        for (int i = 0; i < liczbaOsobnikow; i++)
+        {
+            string chromosom = "";
+            for (int j = 0; j < LBnOs; j++)
+            {
+                chromosom += rnd.Next(2);
+            }
+
+            double przystosowanie = Dekodowanie(chromosom, ZDMin, ZDMax, LBnP);
+
+            populacja.Add((chromosom, przystosowanie));
+        }
+
+        Console.WriteLine("--- Populacja początkowa ---");
+
+        foreach (var k in populacja)
+        {
+            Console.WriteLine("Wartość chromosomu: " + k.chromosom + " Wartość funkcji: " + Math.Round(k.przystosowanie, 2));
+        }
+
+        string x = Zakodowanie(1.0, ZDMin, ZDMax, LBnP);
+        Console.WriteLine(x);
+
+        Console.WriteLine(Dekodowanie(x, ZDMin, ZDMax, LBnP));
+
+        Console.WriteLine(populacja[0]);
+        Console.WriteLine("\n");
+
+        string y = SelekcjaTurniejowa(populacja, TurRozm);
+        Console.WriteLine(y);
+
+        string z = SelekcjaHotDeck(populacja);
+        Console.WriteLine(z);
+    }
+
+    static string Zakodowanie(double pm, int ZDMin, int ZDMax, int LBnP)
+    {
         int ZD = ZDMax - ZDMin;
         int[] cb = new int[LBnP];
 
-        Dictionary<string, double> kodowanie = new Dictionary<string, double>();
+        double ctmp = Math.Round(((pm - ZDMin) / ZD) * (Math.Pow(2, LBnP) - 1));
 
-        for (int i = 0; i < Math.Pow(2, LBnP); i++)
+        for (int b = 0; b < LBnP; b++)
         {
-            double pm = ZDMin + (ZD / (Math.Pow(2, LBnP) - 1.0)) * i;
-
-            pm = Math.Max(pm, ZDMin);
-            pm = Math.Min(pm, ZDMax);
-
-            string chromosom = Zakodowanie(pm, ZDMin, ZDMax, LBnP);
-            kodowanie.Add(chromosom, pm);
+            cb[b] = (int)Math.Floor(ctmp / Math.Pow(2, b)) % 2;
         }
 
-        Console.WriteLine("--- Kodowanie ---");
+        Array.Reverse(cb);
+        return string.Join("", cb);
+    }
 
-        foreach (var k in kodowanie)
+    static double Dekodowanie(string cb, int ZDMin, int ZDMax, int LBnP)
+    {
+        int ZD = ZDMax - ZDMin;
+        int ctmp = 0;
+
+        for (int b = 0; b < LBnP; b++)
         {
-            Console.WriteLine("Wartość chromosomu: " + k.Key + " Wartość parametru: " + Math.Round(k.Value, 2));
+            ctmp += (cb[b] - '0') * (int)Math.Pow(2, LBnP - 1 - b);
         }
 
-        Console.WriteLine("\n--- Dekodowanie ---");
+        return ZDMin + (ctmp / (Math.Pow(2, LBnP) - 1)) * ZD;
+    }
 
-        foreach (var k in kodowanie)
+    static string SelekcjaTurniejowa(List<(string chromosom, double przystosowanie)> populacja, int TurRozm)
+    {
+        Random rnd = new Random();
+
+        List<(string chromosom, double przystosowanie)> turniej = new List<(string, double)>();
+
+        for (int i = 0; i < TurRozm; i++)
         {
-            double pmDekodowany = Dekodowanie(k.Key, ZDMin, ZDMax, LBnP);
-            Console.WriteLine("Wartość chromosomu: " + k.Key + " Wartość parametru: " + Math.Round(k.Value, 2));
+            int losowanie = rnd.Next(populacja.Count);
+            turniej.Add(populacja[losowanie]);
+            Console.WriteLine("Dodano do turnieju: " + populacja[losowanie]);
         }
 
-        static string Zakodowanie(double pm, int ZDMin, int ZDMax, int LBnP)
+        string najlepszyOsobnik = turniej[0].chromosom;
+        double najlepszaOcena = turniej[0].przystosowanie;
+
+        for (int i = 0; i < turniej.Count; i++)
         {
-            int ZD = ZDMax - ZDMin;
-            int[] cb = new int[LBnP];
-
-            double ctmp = Math.Round(((pm - ZDMin) / ZD) * (Math.Pow(2, LBnP) - 1));
-
-            for (int b = 0; b < LBnP; b++)
+            if (turniej[i].przystosowanie > najlepszaOcena)
             {
-                cb[b] = (int)Math.Floor(ctmp / Math.Pow(2, b)) % 2;
+                najlepszyOsobnik = turniej[i].chromosom;
+                najlepszaOcena = turniej[i].przystosowanie;
             }
-
-            Array.Reverse(cb);
-            return string.Join("", cb);
         }
 
-        static double Dekodowanie(string cb, int ZDMin, int ZDMax, int LBnP)
+        Console.WriteLine("Zwycięzca: " + najlepszyOsobnik + " jego ocena: " + najlepszaOcena);
+        return najlepszyOsobnik;
+    }
+
+    static string SelekcjaHotDeck(List<(string chromosom, double przystosowanie)> populacja)
+    {
+        double najlepszaOcena = double.MinValue;
+        string najlepszyOsobnik = "";
+
+        foreach (var k in populacja)
         {
-            int ZD = ZDMax - ZDMin;
-            int ctmp = 0;
-
-            for (int b = 0; b < LBnP; b++)
+            if (k.przystosowanie > najlepszaOcena)
             {
-                ctmp += cb[b] * (int)Math.Pow(2, b);
+                najlepszaOcena = k.przystosowanie;
+                najlepszyOsobnik = k.chromosom;
             }
-
-            return ZDMin + (ctmp / (Math.Pow(2, LBnP) - 1)) * ZD;
         }
 
-
-        //pm = Math.Max(pm, ZDMin);
-        //pm = Math.Min(pm, ZDMax);
-
-        //double ctmp = Math.Round(((pm - ZDMin) / ZD) * (Math.Pow(2, LBnP) - 1));
-
-        //for (int b = 0; b < LBnP; b++)
-        //{
-        //    cb[b] = (int)Math.Floor(ctmp / Math.Pow(2, b)) % 2;
-        //}
-
-        //Array.Reverse(cb);
-
-        //foreach (int b in cb)
-        //{
-        //    Console.Write(b);
-        //}
-        //Console.WriteLine(pm);
-        //double ctmp2 = 0;
-        //for (int b = 0; b < LBnP; b++)
-        //{
-        //    ctmp2 += cb[b] * Math.Pow(2, b);
-        //}
-
-        //double pm2 = ZDMin + (ctmp / Math.Pow(2, LBnP) - 1) * ZD;
-        //Console.WriteLine(pm2);
-
-        
-        
-
-        
+        Console.WriteLine("Wybrany został: " + najlepszyOsobnik + " jego ocena: " + najlepszaOcena);
+        return najlepszyOsobnik;
     }
 }
