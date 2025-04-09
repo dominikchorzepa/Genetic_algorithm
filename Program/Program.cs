@@ -6,6 +6,7 @@ class Program
     {
         int ZDMin = -5;
         int ZDMax = 5;
+		int ZD = ZDMax - ZDMin;
         int LBnP = 3;
         int TurRozm = 3;
         int liczbaParametrow = 2;
@@ -49,6 +50,20 @@ class Program
 
         string z = SelekcjaHotDeck(populacja);
         Console.WriteLine(z);
+
+        string rodzic1 = "101011";
+        string rodzic2 = "001100";
+
+        Console.WriteLine(rodzic1[2]);
+
+        Console.WriteLine("\n");
+
+        Console.WriteLine(OperatorKrzyzowania(rodzic1, rodzic2, LBnOs));
+
+        Console.WriteLine("\n");
+
+        string testMutacji = "10100101";
+        Console.WriteLine(Mutacja(testMutacji, LBnOs));
     }
 
     static string Zakodowanie(double pm, int ZDMin, int ZDMax, int LBnP)
@@ -79,6 +94,11 @@ class Program
 
         return ZDMin + (ctmp / (Math.Pow(2, LBnP) - 1)) * ZD;
     }
+	
+	static double FunkcjaPrzystosowania(double x1, double x2)
+	{
+		return Math.Sin(x1 * 0.05) + Math.Sin(x2 * 0.05) + 0.4 * Math.Sin(x1 * 0.15) + Math.Sin(x2 * 0.15);
+	}
 
     static string SelekcjaTurniejowa(List<(string chromosom, double przystosowanie)> populacja, int TurRozm)
     {
@@ -125,5 +145,64 @@ class Program
 
         Console.WriteLine("Wybrany został: " + najlepszyOsobnik + " jego ocena: " + najlepszaOcena);
         return najlepszyOsobnik;
+    }
+
+    static (string, string) OperatorKrzyzowania(string rodzic_1, string rodzic_2, int LBnOs)
+    {
+        Random rnd = new Random();
+        int b_ciecie = rnd.Next(0, LBnOs - 1);
+
+        char[] potomek_1 = new char[LBnOs];
+        char[] potomek_2 = new char[LBnOs];
+
+        for (int b = 0; b <= b_ciecie; b++)
+        {
+            potomek_1[b] = rodzic_1[b];
+            potomek_2[b] = rodzic_2[b];
+        }
+
+        Console.WriteLine("Rodzic1: " + rodzic_1);
+        Console.WriteLine("Rodzic2: " + rodzic_2);
+
+        Console.WriteLine("Punkt cięcia[index]: " + b_ciecie);
+
+        for (int b = b_ciecie + 1; b < LBnOs; b++)
+        {
+            potomek_1[b] = rodzic_2[b];
+            potomek_2[b] = rodzic_1[b];
+        }
+
+        string potomek1 = new string(potomek_1);
+        string potomek2 = new string(potomek_2);
+
+        Console.WriteLine("Potomek1: " + potomek1);
+        Console.WriteLine("Potomek2: " + potomek2);
+
+        return (potomek1, potomek2);
+    }
+
+    static string Mutacja(string chromosom, int LBnOs)
+    {
+        Random rnd = new Random();
+        int b_punkt = rnd.Next(0, LBnOs);
+
+        char[] chromosomTablica = chromosom.ToCharArray();
+
+        Console.WriteLine("Chromosom do mutacji: " + chromosom);
+        Console.WriteLine("Punkt mutacji[index]: " + b_punkt);
+
+
+        if (chromosomTablica[b_punkt] == '1')
+        {
+            chromosomTablica[b_punkt] = '0';
+        } else
+        {
+            chromosomTablica[b_punkt] = '1';
+        }
+
+        string chromosomWyjscie = new string(chromosomTablica);
+        Console.WriteLine("Chromosom po mutacji: " + chromosomWyjscie);
+
+        return chromosomWyjscie;
     }
 }
