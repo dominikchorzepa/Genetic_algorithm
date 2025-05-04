@@ -1,17 +1,20 @@
-﻿namespace Program;
+﻿using System.Diagnostics;
+
+namespace Program;
 
 class Program
 {
     static void Main(string[] args)
     {
-        int ZDMin = -5;
-        int ZDMax = 5;
-		int ZD = ZDMax - ZDMin;
+        int ZDMin = -10;
+        int ZDMax = 10;
+        int ZD = ZDMax - ZDMin;
         int LBnP = 3;
         int TurRozm = 3;
-        int liczbaParametrow = 2;
-        int liczbaOsobnikow = 6;
+        int liczbaParametrow = 9;
+        int liczbaOsobnikow = 13;
         int LBnOs = LBnP * liczbaParametrow;
+        int liczbaIteracji = 1000;
 
         List<(string chromosom, double przystosowanie)> populacja = new List<(string, double)>();
 
@@ -19,13 +22,30 @@ class Program
 
         for (int i = 0; i < liczbaOsobnikow; i++)
         {
-            string chromosom = "";
-            for (int j = 0; j < LBnOs; j++)
-            {
-                chromosom += rnd.Next(2);
-            }
+            double w1 = rnd.NextDouble() * ZD + ZDMin;
+            double w2 = rnd.NextDouble() * ZD + ZDMin;
+            double w3 = rnd.NextDouble() * ZD + ZDMin;
+            double w4 = rnd.NextDouble() * ZD + ZDMin;
+            double w5 = rnd.NextDouble() * ZD + ZDMin;
+            double w6 = rnd.NextDouble() * ZD + ZDMin;
+            double w7 = rnd.NextDouble() * ZD + ZDMin;
+            double w8 = rnd.NextDouble() * ZD + ZDMin;
+            double w9 = rnd.NextDouble() * ZD + ZDMin;
 
-            double przystosowanie = Dekodowanie(chromosom, ZDMin, ZDMax, LBnP);
+            string w1_bin = Zakodowanie(w1, ZDMin, ZDMax, LBnP);
+            string w2_bin = Zakodowanie(w2, ZDMin, ZDMax, LBnP);
+            string w3_bin = Zakodowanie(w3, ZDMin, ZDMax, LBnP);
+            string w4_bin = Zakodowanie(w4, ZDMin, ZDMax, LBnP);
+            string w5_bin = Zakodowanie(w5, ZDMin, ZDMax, LBnP);
+            string w6_bin = Zakodowanie(w6, ZDMin, ZDMax, LBnP);
+            string w7_bin = Zakodowanie(w7, ZDMin, ZDMax, LBnP);
+            string w8_bin = Zakodowanie(w8, ZDMin, ZDMax, LBnP);
+            string w9_bin = Zakodowanie(w9, ZDMin, ZDMax, LBnP);
+
+            string chromosom = w1_bin + w2_bin + w3_bin + w4_bin + w5_bin + w6_bin + w7_bin + w8_bin + w9_bin;
+
+            double[] wagi = { w1, w2, w3, w4, w5, w6, w7, w8, w9 };
+            double przystosowanie = FunkcjaPrzystosowania(wagi);
 
             populacja.Add((chromosom, przystosowanie));
         }
@@ -34,36 +54,81 @@ class Program
 
         foreach (var k in populacja)
         {
-            Console.WriteLine("Wartość chromosomu: " + k.chromosom + " Wartość funkcji: " + Math.Round(k.przystosowanie, 2));
+            Console.WriteLine("Wartość chromosomu: " + k.chromosom + " Wartość funkcji: " + k.przystosowanie, 2);
         }
 
-        string x = Zakodowanie(1.0, ZDMin, ZDMax, LBnP);
-        Console.WriteLine(x);
+        double minimalneP = double.MaxValue;
+        double sumaP = 0;
 
-        Console.WriteLine(Dekodowanie(x, ZDMin, ZDMax, LBnP));
+        foreach (var k in populacja)
+        {
+            if (k.przystosowanie < minimalneP)
+            {
+                minimalneP = k.przystosowanie;
+            }
+            sumaP += k.przystosowanie;
+        }
+        Console.WriteLine("Najlepsza funkcja osobnika: " + minimalneP);
+        Console.WriteLine("Średnia wartość przystosowania: " + sumaP / populacja.Count + "\n");
 
-        Console.WriteLine(populacja[0]);
-        Console.WriteLine("\n");
+        for (int i = 0; i < liczbaIteracji; i++)
+        {
+            Console.WriteLine("--- Populacja " + (i + 1) + " ---");
 
-        string y = SelekcjaTurniejowa(populacja, TurRozm);
-        Console.WriteLine(y);
+            List<(string chromosom, double przystosowanie)> nowaPopulacja = new List<(string, double)>();
 
-        string z = SelekcjaHotDeck(populacja);
-        Console.WriteLine(z);
+            for (int j = 0; j < liczbaOsobnikow - 1; j++)
+            {
+                string zwyciezca = SelekcjaTurniejowa(populacja, TurRozm);
+                nowaPopulacja.Add((zwyciezca, 0));
+            }
 
-        string rodzic1 = "101011";
-        string rodzic2 = "001100";
+            List<(int a, int b)> krzyzowanieIndexy = new List<(int, int)> { (0, 1), (2, 3), (8, 9), (10, 11) };
 
-        Console.WriteLine(rodzic1[2]);
+            foreach (var (a, b) in krzyzowanieIndexy)
+            {
+                var (potomek1, potomek2) = OperatorKrzyzowania(nowaPopulacja[a].chromosom, nowaPopulacja[b].chromosom, LBnOs);
+                nowaPopulacja[a] = (potomek1, 0);
+                nowaPopulacja[b] = (potomek2, 0);
+            }
 
-        Console.WriteLine("\n");
+            for (int j = 4; j < nowaPopulacja.Count; j++)
+            {
+                string zmutowany = Mutacja(nowaPopulacja[j].chromosom, LBnOs);
+                nowaPopulacja[j] = (zmutowany, 0);
+            }
 
-        Console.WriteLine(OperatorKrzyzowania(rodzic1, rodzic2, LBnOs));
+            string najlepszyOsobnik = SelekcjaHotDeck(populacja);
+            nowaPopulacja.Add((najlepszyOsobnik, 0));
 
-        Console.WriteLine("\n");
+            for (int j = 0; j < nowaPopulacja.Count; j++)
+            {
+                string chromosom = nowaPopulacja[j].chromosom;
 
-        string testMutacji = "10100101";
-        Console.WriteLine(Mutacja(testMutacji, LBnOs));
+                double[] wagi = DekodowanieNaTablice(chromosom, ZDMin, ZDMax, LBnP);
+
+                double przystosowanie = FunkcjaPrzystosowania(wagi);
+
+                nowaPopulacja[j] = (chromosom, przystosowanie);
+            }
+
+            double minPrzystosowanie = double.MaxValue;
+            double sumaPrzystosowania = 0;
+
+            foreach (var k in nowaPopulacja)
+            {
+                if (k.przystosowanie < minPrzystosowanie)
+                {
+                    minPrzystosowanie = k.przystosowanie;
+                }
+                sumaPrzystosowania += k.przystosowanie;
+                Console.WriteLine("Wartość chromosomu: " + k.chromosom + " Wartość funkcji: " + k.przystosowanie, 2);
+            }
+            Console.WriteLine("Najlepsza funkcja osobnika: " + minPrzystosowanie, 2);
+            Console.WriteLine("Średnia wartość przystosowania: " + sumaPrzystosowania / populacja.Count + "\n");
+
+            populacja = nowaPopulacja;
+        }
     }
 
     static string Zakodowanie(double pm, int ZDMin, int ZDMax, int LBnP)
@@ -94,11 +159,54 @@ class Program
 
         return ZDMin + (ctmp / (Math.Pow(2, LBnP) - 1)) * ZD;
     }
-	
-	static double FunkcjaPrzystosowania(double x1, double x2)
-	{
-		return Math.Sin(x1 * 0.05) + Math.Sin(x2 * 0.05) + 0.4 * Math.Sin(x1 * 0.15) + Math.Sin(x2 * 0.15);
-	}
+
+    static double[] DekodowanieNaTablice(string chromosom, int ZDMin, int ZDMax, int LBnP)
+    {
+        int liczbaWag = chromosom.Length / LBnP;
+        double[] wagi = new double[liczbaWag];
+
+        for (int i = 0; i < liczbaWag; i++)
+        {
+            string fragment = chromosom.Substring(i * LBnP, LBnP);
+            wagi[i] = Dekodowanie(fragment, ZDMin, ZDMax, LBnP);
+        }
+        return wagi;
+    }
+
+    static double FunkcjaPrzystosowania(double[] wagi)
+    {
+        var dane = new List<(double[], double)>
+        {
+            (new double[] {1, 0, 0 }, 0),
+            (new double[] {1, 0, 1 }, 1),
+            (new double[] {1, 1, 0 }, 1),
+            (new double[] {1, 1, 1 }, 0)
+        };
+
+        double suma = 0;
+
+        foreach (var (wejscia, wyjscia) in dane)
+        {
+            double[] wyjsciaUkryte =
+            {
+                Sigmoid(wagi[0] * wejscia[0] + wagi[1] * wejscia[1] + wagi[2] * wejscia[2]),
+                Sigmoid(wagi[3] * wejscia[0] + wagi[4] * wejscia[1] + wagi[5] * wejscia[2])
+            };
+            double wyjscieKoncowe = Sigmoid(
+                wagi[6] * wyjsciaUkryte[0] + 
+                wagi[7] * wyjsciaUkryte[1] + 
+                wagi[8] * 1
+                );
+            suma += Math.Pow(wyjscia - wyjscieKoncowe, 2);
+        }
+
+        return suma;
+    }
+
+    static double Sigmoid(double x)
+    {
+        return 1 / (1 + Math.Exp(-x));
+    }
 
     static string SelekcjaTurniejowa(List<(string chromosom, double przystosowanie)> populacja, int TurRozm)
     {
@@ -110,7 +218,6 @@ class Program
         {
             int losowanie = rnd.Next(populacja.Count);
             turniej.Add(populacja[losowanie]);
-            Console.WriteLine("Dodano do turnieju: " + populacja[losowanie]);
         }
 
         string najlepszyOsobnik = turniej[0].chromosom;
@@ -118,32 +225,30 @@ class Program
 
         for (int i = 0; i < turniej.Count; i++)
         {
-            if (turniej[i].przystosowanie > najlepszaOcena)
+            if (turniej[i].przystosowanie < najlepszaOcena)
             {
                 najlepszyOsobnik = turniej[i].chromosom;
                 najlepszaOcena = turniej[i].przystosowanie;
             }
         }
 
-        Console.WriteLine("Zwycięzca: " + najlepszyOsobnik + " jego ocena: " + najlepszaOcena);
         return najlepszyOsobnik;
     }
 
     static string SelekcjaHotDeck(List<(string chromosom, double przystosowanie)> populacja)
     {
-        double najlepszaOcena = double.MinValue;
+        double najlepszaOcena = double.MaxValue;
         string najlepszyOsobnik = "";
 
         foreach (var k in populacja)
         {
-            if (k.przystosowanie > najlepszaOcena)
+            if (k.przystosowanie < najlepszaOcena)
             {
                 najlepszaOcena = k.przystosowanie;
                 najlepszyOsobnik = k.chromosom;
             }
         }
 
-        Console.WriteLine("Wybrany został: " + najlepszyOsobnik + " jego ocena: " + najlepszaOcena);
         return najlepszyOsobnik;
     }
 
@@ -161,11 +266,6 @@ class Program
             potomek_2[b] = rodzic_2[b];
         }
 
-        Console.WriteLine("Rodzic1: " + rodzic_1);
-        Console.WriteLine("Rodzic2: " + rodzic_2);
-
-        Console.WriteLine("Punkt cięcia[index]: " + b_ciecie);
-
         for (int b = b_ciecie + 1; b < LBnOs; b++)
         {
             potomek_1[b] = rodzic_2[b];
@@ -174,9 +274,6 @@ class Program
 
         string potomek1 = new string(potomek_1);
         string potomek2 = new string(potomek_2);
-
-        Console.WriteLine("Potomek1: " + potomek1);
-        Console.WriteLine("Potomek2: " + potomek2);
 
         return (potomek1, potomek2);
     }
@@ -188,20 +285,16 @@ class Program
 
         char[] chromosomTablica = chromosom.ToCharArray();
 
-        Console.WriteLine("Chromosom do mutacji: " + chromosom);
-        Console.WriteLine("Punkt mutacji[index]: " + b_punkt);
-
-
         if (chromosomTablica[b_punkt] == '1')
         {
             chromosomTablica[b_punkt] = '0';
-        } else
+        }
+        else
         {
             chromosomTablica[b_punkt] = '1';
         }
 
         string chromosomWyjscie = new string(chromosomTablica);
-        Console.WriteLine("Chromosom po mutacji: " + chromosomWyjscie);
 
         return chromosomWyjscie;
     }
