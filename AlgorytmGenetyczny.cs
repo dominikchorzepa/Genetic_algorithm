@@ -74,5 +74,68 @@ namespace Program
             double x2 = x[1];
             return Math.Sin(x1 * 0.05) + Math.Sin(x2 * 0.05) + 0.4 * Math.Sin(x1 * 0.15) + Math.Sin(x2 * 0.15);
         }
+
+        public string SelekcjaTurniejowa(List<Osobnik> populacja, int TurRozm)
+        {
+            Random rnd = new Random();
+            List<Osobnik> turniej = new List<Osobnik>();
+
+            for (int i = 0; i < TurRozm; i++)
+            {
+                int losowanie = rnd.Next(populacja.Count);
+                turniej.Add(populacja[losowanie]);
+            }
+
+            string najlepszyOsobnik = turniej[0].Chromosom;
+            double najlepszaOcena = turniej[0].Przystosowanie;
+
+            for (int i = 0; i < turniej.Count; i++)
+            {
+                if (turniej[i].Przystosowanie > najlepszaOcena)
+                {
+                    najlepszyOsobnik = turniej[i].Chromosom;
+                    najlepszaOcena = turniej[i].Przystosowanie;
+                }
+            }
+
+            return najlepszyOsobnik;
+        }
+
+        public string SelekcjaHotDeck(List<Osobnik> populacja)
+        {
+            double najlepszaOcena = double.MinValue;
+            string najlepszyOsobnik = "";
+
+            foreach (var k in populacja)
+            {
+                if (k.Przystosowanie > najlepszaOcena)
+                {
+                    najlepszaOcena = k.Przystosowanie;
+                    najlepszyOsobnik = k.Chromosom;
+                }
+            }
+
+            return najlepszyOsobnik;
+        }
+
+        public string Mutacja(string chromosom, int LBnOs)
+        {
+            Random rnd = new Random();
+            int b_punkt = rnd.Next(0, LBnOs);
+
+            char[] chromosomTablica = chromosom.ToCharArray();
+
+            if (chromosomTablica[b_punkt] == '1')
+            {
+                chromosomTablica[b_punkt] = '0';
+            } else
+            {
+                chromosomTablica[b_punkt] = '1';
+            }
+
+            string chromosomWyjscie = new string(chromosomTablica);
+
+            return chromosomWyjscie;
+        }
     }
 }
