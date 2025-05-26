@@ -117,6 +117,32 @@ namespace Program
 
             return najlepszyOsobnik;
         }
+        
+        public (string, string) OperatorKrzyzowania(string rodzic_1, string rodzic_2, int LBnOs)
+        {
+            Random rnd = new Random();
+            int b_ciecie = rnd.Next(0, LBnOs - 1);
+
+            char[] potomek_1 = new char[LBnOs];
+            char[] potomek_2 = new char[LBnOs];
+
+            for (int b = 0; b <= b_ciecie; b++)
+            {
+                potomek_1[b] = rodzic_1[b];
+                potomek_2[b] = rodzic_2[b];
+            }
+
+            for (int b = b_ciecie + 1; b < LBnOs; b++)
+            {
+                potomek_1[b] = rodzic_2[b];
+                potomek_2[b] = rodzic_1[b];
+            }
+
+            string potomek1 = new string(potomek_1);
+            string potomek2 = new string(potomek_2);
+
+            return (potomek1, potomek2);
+        }
 
         public string Mutacja(string chromosom, int LBnOs)
         {
@@ -128,7 +154,8 @@ namespace Program
             if (chromosomTablica[b_punkt] == '1')
             {
                 chromosomTablica[b_punkt] = '0';
-            } else
+            }
+            else
             {
                 chromosomTablica[b_punkt] = '1';
             }
