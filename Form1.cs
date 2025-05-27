@@ -79,6 +79,8 @@ namespace Program
         private void GenerujAlgorytmGenetyczny(int ZdMin, int ZdMax, int LBnp, int LiczbaParametrow, int LiczbaOsobnikow, int LiczbaIteracji, int turRozm)
         {
             var algorytm = new AlgorytmGenetyczny(ZdMin, ZdMax, LBnp, LiczbaParametrow, LiczbaOsobnikow, LiczbaIteracji, turRozm);
+
+            algorytm.ZapiszWynikiAlgorytmu = (linia) => WynikiAlgorytmu.Items.Add(linia);
         }
     }
 }

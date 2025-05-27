@@ -34,6 +34,8 @@ namespace Program
             populacja = new List<Osobnik>();
         }
 
+        public Action<string> ZapiszWynikiAlgorytmu;
+
         public void PopulacjaPoczatkowa()
         {
             for (int i = 0; i < liczbaOsobnikow; i++)
@@ -52,12 +54,68 @@ namespace Program
             }
         }
 
+        public List<Osobnik> KolejnePopulacje()
+        {
+            List<Osobnik> nowaPopulacja = new List<Osobnik>();
+
+            for (int i = 0; i < liczbaOsobnikow - 1; i++)
+            {
+                string zwyciezca = SelekcjaTurniejowa(populacja, TurRozm);
+                nowaPopulacja.Add(new Osobnik(zwyciezca, 0));
+            }
+
+            for (int i = 0; i < nowaPopulacja.Count - 1; i += 2)
+            {
+                var (potomek1, potomek2) = OperatorKrzyzowania(nowaPopulacja[i].Chromosom, nowaPopulacja[i + 1].Chromosom, LBnOs);
+                nowaPopulacja[i] = new Osobnik(potomek1, 0);
+                nowaPopulacja[i+1] = new Osobnik(potomek2, 0);
+            }
+
+            for (int i = 4; i < nowaPopulacja.Count; i++)
+            {
+                string zmutowany = Mutacja(nowaPopulacja[i].Chromosom, LBnOs);
+                nowaPopulacja[i] = new Osobnik(zmutowany, 0);
+            }
+
+            string najlepszyOsobnik = SelekcjaHotDeck(populacja);
+            nowaPopulacja.Add(new Osobnik(najlepszyOsobnik, 0));
+
+            for (int i = 0; i < nowaPopulacja.Count; i++)
+            {
+                string chromosom = nowaPopulacja[i].Chromosom;
+                double[] pm = DekodowanieChromosomu(chromosom);
+                double przystosowanie = FunkcjaPrzystosowania(pm);
+                nowaPopulacja[i] = new Osobnik(chromosom, przystosowanie);
+            }
+
+            return nowaPopulacja;
+        }
+
+        public void WypiszStatystyki()
+        {
+            double maxPrzystosowanie = populacja[0].Przystosowanie;
+            double sumaPrzystosowania = 0;
+
+            foreach (var osobnik in populacja)
+            {
+                if (osobnik.Przystosowanie > maxPrzystosowanie)
+                {
+                    maxPrzystosowanie = osobnik.Przystosowanie;
+                }
+                sumaPrzystosowania += osobnik.Przystosowanie;
+                ZapiszWynikiAlgorytmu?.Invoke("Wartość chromosomu: " + osobnik.Chromosom + " Wartość funkcji: " + Math.Round(osobnik.Przystosowanie, 6));
+            }
+
+            ZapiszWynikiAlgorytmu?.Invoke("Najlepsza funkcja osobnika: " + Math.Round(maxPrzystosowanie, 10));
+            ZapiszWynikiAlgorytmu?.Invoke("Średnia wartość przystosowania: " + Math.Round(sumaPrzystosowania / populacja.Count, 10) + "\n");
+        }
+
         public string Zakodowanie(double pm, int ZDMin, int ZDMax, int LBnP)
         {
             int ZD = ZDMax - ZDMin;
             int[] cb = new int[LBnP];
 
-            double ctmp = Math.Round(((pm - ZDMin) / ZD) * Math.Pow(2, LBnP) - 1);
+            double ctmp = Math.Round(((pm - ZDMin) / ZD) * (Math.Pow(2, LBnP) - 1));
 
             for (int b = 0; b < LBnP; b++)
             {
@@ -66,6 +124,30 @@ namespace Program
 
             Array.Reverse(cb);
             return string.Join("", cb);
+        }
+
+        public double Dekodowanie(string cb, int ZDMin, int ZDMax, int LBnP)
+        {
+            int ZD = ZDMax - ZDMin;
+            int ctmp = 0;
+
+            for (int b = 0; b < LBnP; b++)
+            {
+                ctmp += (cb[b] - '0') * (int)Math.Pow(2, LBnP - 1 - b);
+            }
+
+            return ZDMin + (ctmp / (Math.Pow(2, LBnP) - 1)) * ZD;
+        }
+
+        public double[] DekodowanieChromosomu(string chromosom)
+        {
+            double[] wyniki = new double[liczbaParametrow];
+            for (int i = 0; i < liczbaParametrow; i++)
+            {
+                string fragment = chromosom.Substring(i * LBnP, LBnP);
+                wyniki[i] = Dekodowanie(fragment, ZDMin, ZDMax, LBnP);
+            }
+            return wyniki;
         }
 
         public double FunkcjaPrzystosowania(double[] x)
