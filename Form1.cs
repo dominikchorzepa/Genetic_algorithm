@@ -81,6 +81,8 @@ namespace Program
             var algorytm = new AlgorytmGenetyczny(ZdMin, ZdMax, LBnp, LiczbaParametrow, LiczbaOsobnikow, LiczbaIteracji, turRozm);
 
             algorytm.ZapiszWynikiAlgorytmu = (linia) => WynikiAlgorytmu.Items.Add(linia);
+
+            algorytm.StartAlgorytmu();
         }
     }
 }

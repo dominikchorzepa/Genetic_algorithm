@@ -36,6 +36,17 @@ namespace Program
 
         public Action<string> ZapiszWynikiAlgorytmu;
 
+        public void StartAlgorytmu()
+        {
+            PopulacjaPoczatkowa();
+            for (int i = 0; i < liczbaIteracji; i++)
+            {
+                ZapiszWynikiAlgorytmu?.Invoke($"--- Pokolenie {i + 1} ---");
+                populacja = KolejnePopulacje();
+                WypiszStatystyki();
+            }
+        }
+
         public void PopulacjaPoczatkowa()
         {
             for (int i = 0; i < liczbaOsobnikow; i++)
