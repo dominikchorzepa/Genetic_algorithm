@@ -16,11 +16,15 @@ namespace Program
         int LBnOs;
         public int liczbaIteracji;
         public int TurRozm;
+        public string funkcjaPrzystosow;
         public Random rnd;
+
+        public List<double> X;
+        public List<double> Y;
 
         public List<Osobnik> populacja;
 
-        public AlgorytmGenetyczny(int ZdMin, int ZdMax, int LBnp, int LiczbaParametrow, int LiczbaOsobnikow, int LiczbaIteracji, int turRozm)
+        public AlgorytmGenetyczny(int ZdMin, int ZdMax, int LBnp, int LiczbaParametrow, int LiczbaOsobnikow, int LiczbaIteracji, int turRozm, string FunkcjaPrzystosow, List<double> daneX = null, List<double> daneY = null)
         {
             ZDMin = ZdMin;
             ZDMax = ZdMax;
@@ -30,8 +34,12 @@ namespace Program
             LBnOs = LBnP * liczbaParametrow;
             liczbaIteracji = LiczbaIteracji;
             TurRozm = turRozm;
+            funkcjaPrzystosow = FunkcjaPrzystosow;
             rnd = new Random();
             populacja = new List<Osobnik>();
+
+            X = daneX;
+            Y = daneY;
         }
 
         public Action<string> ZapiszWynikiAlgorytmu;
@@ -163,9 +171,59 @@ namespace Program
 
         public double FunkcjaPrzystosowania(double[] x)
         {
-            double x1 = x[0];
-            double x2 = x[1];
-            return Math.Sin(x1 * 0.05) + Math.Sin(x2 * 0.05) + 0.4 * Math.Sin(x1 * 0.15) + Math.Sin(x2 * 0.15);
+            switch (funkcjaPrzystosow)
+            {
+                case "Funkcja Zad1":
+                    double x1 = x[0];
+                    double x2 = x[1];
+                    return Math.Sin(x1 * 0.05) + Math.Sin(x2 * 0.05) + 0.4 * Math.Sin(x1 * 0.15) + Math.Sin(x2 * 0.15);
+                case "Funkcja Zad2":
+                    double pa = x[0];
+                    double pb = x[1];
+                    double pc = x[2];
+                    double suma = 0;
+                    for (int i = 0; i < X.Count; i++)
+                    {
+                        double f_x = pa * Math.Sin(pb * X[i] + pc);
+                        suma += Math.Pow(Y[i] - f_x, 2);
+                    }
+                    return -suma;
+                case "Funkcja Zad3":
+                    var dane = new List<(double[], double)>
+                    {
+                        (new double[] {1, 0, 0 }, 0),
+                        (new double[] {1, 0, 1 }, 1),
+                        (new double[] {1, 1, 0 }, 1),
+                        (new double[] {1, 1, 1 }, 0)
+                    };
+
+                    double sumaBledow = 0;
+
+                    foreach (var (wejscia, wyjscie) in dane)
+                    {
+                        double[] wyjsciaUkryte =
+                        {
+                            Sigmoid(x[0] * wejscia[0] + x[1] * wejscia[1] + x[2] * wejscia[2]),
+                            Sigmoid(x[3] * wejscia[0] + x[4] * wejscia[1] + x[5] * wejscia[2])
+                        };
+
+                        double wyjscieKoncowe = Sigmoid(
+                            x[6] * wyjsciaUkryte[0] +
+                            x[7] * wyjsciaUkryte[1] +
+                            x[8] * 1
+                        );
+
+                        sumaBledow += Math.Pow(wyjscie - wyjscieKoncowe, 2);
+                    }
+                    return -sumaBledow;
+                default:
+                    return 0;
+            }
+        }
+
+        public double Sigmoid(double x)
+        {
+            return 1.0 / (1.0 + Math.Exp(-x));
         }
 
         public string SelekcjaTurniejowa(List<Osobnik> populacja, int TurRozm)

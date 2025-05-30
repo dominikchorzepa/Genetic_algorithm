@@ -173,14 +173,15 @@
             // comboBoxFunkcjaPrzystosow
             // 
             comboBoxFunkcjaPrzystosow.FormattingEnabled = true;
+            comboBoxFunkcjaPrzystosow.Items.AddRange(new object[] { "Funkcja Zad1", "Funkcja Zad2", "Funkcja Zad3" });
             comboBoxFunkcjaPrzystosow.Location = new Point(210, 116);
             comboBoxFunkcjaPrzystosow.Name = "comboBoxFunkcjaPrzystosow";
-            comboBoxFunkcjaPrzystosow.Size = new Size(84, 28);
+            comboBoxFunkcjaPrzystosow.Size = new Size(117, 28);
             comboBoxFunkcjaPrzystosow.TabIndex = 15;
             // 
             // buttonGenerujAlgorytm
             // 
-            buttonGenerujAlgorytm.Location = new Point(317, 115);
+            buttonGenerujAlgorytm.Location = new Point(344, 116);
             buttonGenerujAlgorytm.Name = "buttonGenerujAlgorytm";
             buttonGenerujAlgorytm.Size = new Size(142, 29);
             buttonGenerujAlgorytm.TabIndex = 16;

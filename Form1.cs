@@ -73,12 +73,30 @@ namespace Program
                 return;
             }
 
-            GenerujAlgorytmGenetyczny(ZdMin, ZdMax, LBnp, LiczbaParametrow, LiczbaOsobnikow, LiczbaIteracji, turRozm);
+            string FunkcjaPrzystosow = comboBoxFunkcjaPrzystosow.SelectedItem.ToString();
+
+            List<double> x = null;
+            List<double> y = null;
+
+            if (FunkcjaPrzystosow == "Funkcja Zad2")
+            {
+                x = new List<double> { -1.00000, -0.80000, -0.60000, -0.40000, -0.20000, 0.00000, 0.20000,
+                0.40000, 0.60000, 0.80000, 1.0000, 1.20000, 1.40000, 1.60000, 1.80000, 2.0000, 2.20000, 2.40000, 2.60000,
+                2.80000, 3.00000, 3.20000, 3.40000, 3.60000, 3.80000, 4.00000, 4.20000, 4.40000, 4.60000, 4.80000, 5.00000,
+                5.20000, 5.40000, 5.60000, 5.80000, 6.00000};
+
+                y = new List<double> { 0.59554, 0.58813, 0.64181, 0.68587, 0.44783, 0.40836, 0.38241, -0.05933,
+                -0.12478, -0.36847, -0.39935, -0.50881, -0.63435, -0.59979, -0.64107, -0.51808, -0.38127, -0.12349, -0.09624,
+                0.27893, 0.48965, 0.33089, 0.70615, 0.53342, 0.43321, 0.64790, 0.48834, 0.18440, -0.02389, -0.10261, -0.33594,
+                -0.35101, -0.62027, -0.55719, -0.66377, -0.62740};
+            }
+
+            GenerujAlgorytmGenetyczny(ZdMin, ZdMax, LBnp, LiczbaParametrow, LiczbaOsobnikow, LiczbaIteracji, turRozm, FunkcjaPrzystosow, x, y);
         }
 
-        private void GenerujAlgorytmGenetyczny(int ZdMin, int ZdMax, int LBnp, int LiczbaParametrow, int LiczbaOsobnikow, int LiczbaIteracji, int turRozm)
+        private void GenerujAlgorytmGenetyczny(int ZdMin, int ZdMax, int LBnp, int LiczbaParametrow, int LiczbaOsobnikow, int LiczbaIteracji, int turRozm, string FunkcjaPrzystosow, List<double> daneX = null, List<double> daneY = null)
         {
-            var algorytm = new AlgorytmGenetyczny(ZdMin, ZdMax, LBnp, LiczbaParametrow, LiczbaOsobnikow, LiczbaIteracji, turRozm);
+            var algorytm = new AlgorytmGenetyczny(ZdMin, ZdMax, LBnp, LiczbaParametrow, LiczbaOsobnikow, LiczbaIteracji, turRozm, FunkcjaPrzystosow, daneX, daneY);
 
             algorytm.ZapiszWynikiAlgorytmu = (linia) => WynikiAlgorytmu.Items.Add(linia);
 
